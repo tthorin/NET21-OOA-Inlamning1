@@ -6,4 +6,8 @@
     <RootNamespace>OOA_Inlamning1</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
+  </ItemGroup>
+
 </Project>
