@@ -4,8 +4,6 @@
     using System.Collections.Generic;
     using System.Data.SqlClient;
     using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
     using Dapper;
 
     internal static class SqlHelpers
@@ -15,7 +13,7 @@
 
             using (SqlConnection connection = new SqlConnection(ConnectionHelper.CnnStr(connectionString)))
             {
-                return (int)connection.ExecuteScalar(sql);
+                return connection.ExecuteScalar<int>(sql);
             }
 
         }
@@ -25,6 +23,15 @@
             using (SqlConnection connection = new SqlConnection(ConnectionHelper.CnnStr(connectionString)))
             {
                 connection.Execute(sql);
+            }
+
+        }
+        internal static List<Person> Query(string sql, string connectionString = "PeopleDB")
+        {
+
+            using (SqlConnection connection = new SqlConnection(ConnectionHelper.CnnStr(connectionString)))
+            {   
+                return connection.Query<Person>(sql).ToList();
             }
 
         }
