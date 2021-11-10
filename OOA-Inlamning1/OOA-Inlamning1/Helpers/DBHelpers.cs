@@ -7,84 +7,35 @@
     using System.Xml.Linq;
     using Dapper;
     using System.IO;
+    using static Helpers.SqlHelpers;
 
     internal static class DBHelpers
     {
         internal static bool CheckForDB(string name)
         {
-            int returnVal = 0;
+            bool dbExists = false;
             string sql = $"SELECT COUNT(name) FROM master.dbo.sysdatabases WHERE name = '{name}'";
-            using (SqlConnection connection = new SqlConnection(ConnectionHelper.CnnStr("BuildDB")))
-            {
-                try
-                {
-                    returnVal = (int)connection.ExecuteScalar(sql);
-                }
-                catch (Exception ex)
-                {
-                    ex.LogThis();
-                    Console.WriteLine("Error in checking for database existance.");
-                    Console.ReadLine();
-                }
-            }
-            return returnVal == 1 ? true : false;
+            if (ExecuteScalar(sql,"BuildDB")==1) dbExists = true;
+            return dbExists;
         }
 
         internal static void CreateTable()
         {
             string sql = File.ReadAllText(@"..\..\..\FakePeople.sql");
-            using (SqlConnection connection = new SqlConnection(ConnectionHelper.CnnStr("PeopleDB")))
-            {
-                try
-                {
-                    connection.Execute(sql);
-
-                }
-                catch (Exception ex)
-                {
-                    ex.LogThis();
-                    Console.WriteLine("Error while trying to create database.");
-                    Console.ReadLine();
-                }
-            }
+           Execute(sql);
         }
 
         internal static void CreateDB(string dbName)
         {
             string sql = $"IF NOT EXISTS (SELECT NAME FROM master.dbo.sysdatabases WHERE name = '{dbName}') CREATE DATABASE {dbName}";
-            using (SqlConnection connection = new SqlConnection(ConnectionHelper.CnnStr("BuildDB")))
-            {
-                try
-                {
-                    connection.Execute(sql);
-
-                }
-                catch (Exception ex)
-                {
-                    ex.LogThis();
-                    Console.WriteLine("Error while trying to create database.");
-                    Console.ReadLine();
-                }
-            }
+            Execute(sql,"BuildDB");
 
         }
-        internal static bool CheckForTable(string name)
+        internal static bool CheckForTable()
         {
             bool tableExists = false;
             string sql = $"SELECT count(name) FROM dbo.sysobjects where name = 'FakePeople' and xtype = 'U'";
-            using (SqlConnection connection = new SqlConnection(ConnectionHelper.CnnStr("PeopleDB")))
-            {
-                try
-                {
-                    if ((int)connection.ExecuteScalar(sql) == 1) tableExists = true;
-                }
-                catch (Exception ex)
-                {
-                    ex.LogThis();
-                    Console.WriteLine("Error while checking for table existance.");
-                    Console.ReadLine();
-                }
-            }
+            if (ExecuteScalar(sql) == 1) tableExists = true;
             return tableExists;
         }
     }
