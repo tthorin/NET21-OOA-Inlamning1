@@ -9,7 +9,13 @@
         internal static void Start()
         {
             if (!Helpers.DBHelpers.CheckForDB(dbName)) AskToCreateDB();
-            if (!Helpers.DBHelpers.CheckForTable(tableName)) AskToCreateTable();
+            if (Helpers.DBHelpers.CheckForDB(dbName) && !Helpers.DBHelpers.CheckForTable()) AskToCreateTable();
+            if (Helpers.DBHelpers.CheckForDB(dbName) && Helpers.DBHelpers.CheckForTable()) AnswerMenu();
+        }
+
+        private static void AnswerMenu()
+        {
+            throw new NotImplementedException();
         }
 
         private static void AskToCreateTable()
