@@ -1,14 +1,14 @@
 ﻿namespace OOA_Inlamning1
 {
     using System;
+    using Helpers;
 
     internal class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
-            Console.WriteLine("Hello World!");
-        }
 
+        }
     }
-        
+
 }
