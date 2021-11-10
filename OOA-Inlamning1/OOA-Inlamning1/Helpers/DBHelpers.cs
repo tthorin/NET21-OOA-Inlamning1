@@ -8,6 +8,7 @@
     using Dapper;
     using System.IO;
     using static Helpers.SqlHelpers;
+    using System.Configuration;
 
     internal static class DBHelpers
     {
@@ -23,6 +24,7 @@
 
         internal static void CreateTable()
         {
+            string filePath = ConfigurationManager.AppSettings.Get("sqlTableCreateFile");
             string sql = File.ReadAllText(@"..\..\..\FakePeople.sql");
            Execute(sql);
         }
