@@ -13,7 +13,7 @@ namespace OOA_Inlamning1.Extensions
         {
             string dir = "log";
             string fileName = "log.txt";
-            string logText = DateTime.Now.ToString() + " " + ex.Message + " " + ex.StackTrace;
+            string logText = DateTime.Now.ToString() + " " + ex.Message + " " + ex.StackTrace+"\n";
 
             try
             {
