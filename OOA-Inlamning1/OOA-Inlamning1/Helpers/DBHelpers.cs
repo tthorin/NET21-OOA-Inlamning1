@@ -11,6 +11,8 @@
 
     internal static class DBHelpers
     {
+        private static string dbName = "TT_Net21_People";
+        private static string tableName = "FakePeople";
         internal static bool CheckForDB(string name)
         {
             bool dbExists = false;
@@ -38,5 +40,36 @@
             if (ExecuteScalar(sql) == 1) tableExists = true;
             return tableExists;
         }
+        private static void AskToCreateTable()
+        {
+            string input = "";
+            do
+            {
+                Console.Write($"Table {tableName} doesn't exist, would you like to (c)reate it or (e)xit? ");
+                input = Console.ReadLine().Trim().ToLower();
+            } while (!(input == "c" || input == "create") && !(input == "e" || input == "exit"));
+            if (input[0] == 'c') Helpers.DBHelpers.CreateTable();
+        }
+
+
+        private static void AskToCreateDB()
+        {
+            string input = "";
+            do
+            {
+                Console.Write($"Database {dbName} doesn't exist, would you like to (c)reate it or (e)xit? ");
+                input = Console.ReadLine().Trim().ToLower();
+            } while (!(input == "c" || input == "create") && !(input == "e" || input == "exit"));
+            if (input[0] == 'c') Helpers.DBHelpers.CreateDB(dbName);
+        }
+
+        internal static bool CheckData()
+        {
+            if (!CheckForDB(dbName)) AskToCreateDB();
+            if (CheckForDB(dbName) && !CheckForTable()) AskToCreateTable();
+            if (CheckForDB(dbName) && CheckForTable()) return true;
+            else return false;
+        }
     }
+
 }
