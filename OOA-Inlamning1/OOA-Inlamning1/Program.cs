@@ -7,7 +7,7 @@
     {
         static void Main()
         {
-
+            SqlAnswers.Start();
         }
     }
 
