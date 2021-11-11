@@ -25,7 +25,7 @@
         internal static void CreateTable()
         {
             string filePath = ConfigurationManager.AppSettings.Get("sqlTableCreateFile");
-            string sql = File.ReadAllText(@"..\..\..\FakePeople.sql");
+            string sql = File.ReadAllText(filePath);
            Execute(sql);
         }
 

@@ -11,7 +11,7 @@
     {
         static internal void Hold()
         {
-            Console.Write("Press any key to continue");
+            Console.Write("Press any key to continue...");
             Console.ReadKey(true);
         }
         internal static void Wait(bool holdAtEnd=true,bool onlyDots=false)
@@ -46,6 +46,16 @@
             }
             Console.WriteLine();
             if (holdAtEnd)Console.ReadKey(true);
+        }
+        internal static void PrintPeopleList(List<Person> people)
+        {
+            int counter = 1;
+            foreach (var person in people)
+            {
+                Console.WriteLine($"{counter,-3}) (id:{person.id,4}) {person.FullName}");
+                counter++;
+            }
+            Hold();
         }
     }
 }

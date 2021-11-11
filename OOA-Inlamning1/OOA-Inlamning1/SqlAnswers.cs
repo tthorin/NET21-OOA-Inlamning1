@@ -1,13 +1,13 @@
 ﻿namespace OOA_Inlamning1
 {
-    
+
     using OOA_Inlamning1.Helpers;
     using System;
     using System.Collections.Generic;
     using System.Data.SqlClient;
     using static Helpers.SqlHelpers;
     using static Helpers.ConsolePrintHelpers;
-using Dapper;
+    using Dapper;
 
     internal static class SqlAnswers
     {
@@ -40,7 +40,7 @@ using Dapper;
                 Console.WriteLine("5) List first 10 users with a last name beginning with \"L\".");
                 Console.WriteLine("6) List all users with name and last name beginning with the same letter.");
                 Console.WriteLine("E or Escape) Exit application.");
-                Wait(false,true);
+                Wait(false, true);
                 input = Console.ReadKey(true);
                 switch (input.Key)
                 {
@@ -50,58 +50,50 @@ using Dapper;
                     case ConsoleKey.D5 or ConsoleKey.NumPad5: FirstTenLastNameStartWithL(); break;
                     case ConsoleKey.D6 or ConsoleKey.NumPad6: FirstLastAlliteration(); break;
                     case ConsoleKey.D2 or ConsoleKey.NumPad2: UsernameAndPassword(); break;
-                    default:break;
+                    default: break;
                 }
             } while (input.Key != ConsoleKey.Escape && input.Key != ConsoleKey.E);
         }
 
         private static void UsernameAndPassword()
         {
-            throw new NotImplementedException();
+            var sql = "SELECT COUNT(DISTINCT id),COUNT(DISTINCT username),COUNT(DISTINCT password) FROM FakePeople";
+            var values = QueryTupleIntIntInt(sql);
+            Console.WriteLine($"There are {values[0].Item1} unique users, {values[0].Item2} unique usernames and {values[0].Item3} unique passwords.");
+            Wait();
         }
 
         private static void FirstLastAlliteration()
         {
             string sql = "SELECT id,first_name,last_name FROM FakePeople WHERE LEFT(first_name,1) = LEFT(last_name,1) GROUP BY first_name,last_name,id";
-            people = Query(sql);
-            PrintPeopleList();
+            people = QueryPerson(sql);
+            PrintPeopleList(people);
         }
 
-        private static void PrintPeopleList()
-        {
-            int counter = 1;
-            foreach (var person in people)
-            {
-                Console.WriteLine($"{counter,-3}) (id:{person.id,4}) {person.FullName}");
-                counter++;
-            }
-            Wait();
-        }
+
 
         private static void FirstTenLastNameStartWithL()
         {
             string sql = "SELECT TOP 10 id,first_name,last_name FROM FakePeople WHERE LOWER(last_name) LIKE 'l%'";
-            people = Query(sql);
-            PrintPeopleList();
+            people = QueryPerson(sql);
+            PrintPeopleList(people);
         }
 
         private static void MostRepresentedCountry()
         {
             string sql = "SELECT TOP 1 country,COUNT(country) FROM FakePeople GROUP BY country ORDER BY COUNT(country) DESC";
-            //people = Query(sql);
-            List<(string, int)> countryList = new List<(string, int)>();
-            using (SqlConnection connection = new SqlConnection(ConnectionHelper.CnnStr("PeopleDB")))
-            {
-                countryList= connection.Query<(string, int)>(sql).AsList<(string,int)>();
-            }
-            Console.WriteLine($"\nMost represented country is: {countryList[0].Item1} {countryList[0].Item2}");
+            var countryList = QueryTupleStringInt(sql);
+            Console.WriteLine($"\nMost represented country is {countryList[0].Item1} with {countryList[0].Item2} unique users.");
             Wait();
 
         }
 
         private static void FromNordenVsScandinavia()
         {
-            throw new NotImplementedException();
+            var sql = "SELECT (SELECT COUNT(id) FROM FakePeople WHERE country IN ('Sweden','Denmark','Norway')),(SELECT COUNT(id) FROM FakePeople WHERE country IN ('Sweden','Denmark','Finland','Norway','Iceland'))";
+            var usersFromDiffrentParts = QueryTupleIntIntInt(sql);
+            Console.WriteLine($"\nThere are {usersFromDiffrentParts[0].Item1} users from Norden and {usersFromDiffrentParts[0].Item2} users from Scandinavia.");
+            Wait();
         }
 
         private static void DiffrentCountries()
