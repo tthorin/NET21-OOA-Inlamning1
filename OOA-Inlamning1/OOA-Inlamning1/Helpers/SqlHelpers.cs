@@ -35,5 +35,14 @@
             }
 
         }
+        internal static List<(int,int)> QueryTuple(string sql, string connectionString = "PeopleDB")
+        {
+
+            using (SqlConnection connection = new SqlConnection(ConnectionHelper.CnnStr(connectionString)))
+            {
+                return connection.Query<(int,int)>(sql).ToList();
+            }
+
+        }
     }
 }
