@@ -53,8 +53,25 @@
                     default: break;
                 }
             } while (input.Key != ConsoleKey.Escape && input.Key != ConsoleKey.E);
+            ExitMenu();
         }
-
+        private static void ExitMenu()
+        {
+            ConsoleKeyInfo input = new();
+            do
+            {
+                Console.Clear();
+                Console.WriteLine("D) Press D if you wish to delete the datatable and database.");
+                Console.WriteLine("E or Escape) Exit application.");
+                Wait(false, true);
+                input = Console.ReadKey(true);
+                switch (input.Key)
+                {
+                    case ConsoleKey.D: DBHelpers.ExitCheckData(); break;
+                    default: break;
+                }
+            } while (input.Key != ConsoleKey.Escape && input.Key != ConsoleKey.E);
+        }
         private static void UsernameAndPassword()
         {
             var sql = "SELECT COUNT(DISTINCT id),COUNT(DISTINCT username),COUNT(DISTINCT password) FROM FakePeople";
