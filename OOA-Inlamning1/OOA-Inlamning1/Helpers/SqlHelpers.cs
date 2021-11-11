@@ -26,7 +26,7 @@
             }
 
         }
-        internal static List<Person> Query(string sql, string connectionString = "PeopleDB")
+        internal static List<Person> QueryPerson(string sql, string connectionString = "PeopleDB")
         {
 
             using (SqlConnection connection = new SqlConnection(ConnectionHelper.CnnStr(connectionString)))
@@ -35,12 +35,21 @@
             }
 
         }
-        internal static List<(int,int)> QueryTuple(string sql, string connectionString = "PeopleDB")
+        internal static List<(string,int)> QueryTupleStringInt(string sql, string connectionString = "PeopleDB")
         {
 
             using (SqlConnection connection = new SqlConnection(ConnectionHelper.CnnStr(connectionString)))
             {
-                return connection.Query<(int,int)>(sql).ToList();
+                return connection.Query<(string,int)>(sql).ToList();
+            }
+
+        }
+        internal static List<(int, int,int)> QueryTupleIntIntInt(string sql, string connectionString = "PeopleDB")
+        {
+
+            using (SqlConnection connection = new SqlConnection(ConnectionHelper.CnnStr(connectionString)))
+            {
+                return connection.Query<(int, int,int)>(sql).ToList();
             }
 
         }
