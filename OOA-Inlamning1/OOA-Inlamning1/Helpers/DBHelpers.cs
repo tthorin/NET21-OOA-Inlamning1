@@ -18,7 +18,7 @@
         {
             bool dbExists = false;
             string sql = $"SELECT COUNT(name) FROM master.dbo.sysdatabases WHERE name = '{name}'";
-            if (ExecuteScalar(sql,"BuildDB")==1) dbExists = true;
+            if (ExecuteScalar(sql,"master")==1) dbExists = true;
             return dbExists;
         }
 
@@ -32,7 +32,7 @@
         internal static void CreateDB(string dbName)
         {
             string sql = $"IF NOT EXISTS (SELECT NAME FROM master.dbo.sysdatabases WHERE name = '{dbName}') CREATE DATABASE {dbName}";
-            Execute(sql,"BuildDB");
+            Execute(sql,"master");
 
         }
         internal static bool CheckForTable()
@@ -67,10 +67,53 @@
 
         internal static bool CheckData()
         {
+            Console.CursorVisible = true;
             if (!CheckForDB(dbName)) AskToCreateDB();
             if (CheckForDB(dbName) && !CheckForTable()) AskToCreateTable();
+            Console.CursorVisible = false;
             if (CheckForDB(dbName) && CheckForTable()) return true;
             else return false;
+        }
+        internal static void ExitCheckData()
+        {
+            Console.CursorVisible = true;
+            if (CheckForDB(dbName) && CheckForTable()) AskToDeleteTable();
+            if (CheckForDB(dbName)) AskToDeleteDB();
+        }
+        private static void AskToDeleteDB()
+        {
+            string input = "";
+            do
+            {
+                Console.WriteLine($"Would you like to delete the database {tableName}?";
+                Console.Write("Please type the whole word \"delete\" to delete it, or \"c\" or \"cancel\" to abort: ");
+                input = Console.ReadLine().Trim().ToLower();
+            } while (!(input == "c" || input == "cancel") && !(input == "delete"));
+            if (input == "delete") DeleteDB();
+        }
+
+        private static void DeleteDB()
+        {
+            var sql = $"DROP DATABASE {dbName}";
+            Execute(sql, "master");
+        }
+
+        private static void AskToDeleteTable()
+        {
+            string input = "";
+            do
+            {
+                Console.WriteLine($"Would you like to delete the table {tableName}?");
+                Console.Write("Please type the whole word \"delete\" to delete it, or \"c\" or \"cancel\" to abort: ");
+                input = Console.ReadLine().Trim().ToLower();
+            } while (!(input == "c" || input == "cancel") && !(input == "delete"));
+            if (input == "delete") DeleteTable();
+        }
+
+        private static void DeleteTable()
+        {
+            var sql = $"DROP TABLE {tableName}";
+            Execute(sql);
         }
     }
 
