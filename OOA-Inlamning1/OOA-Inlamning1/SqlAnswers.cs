@@ -7,6 +7,7 @@
     using System.Data.SqlClient;
     using static Helpers.SqlHelpers;
     using static Helpers.ConsolePrintHelpers;
+using Dapper;
 
     internal static class SqlAnswers
     {
@@ -87,8 +88,13 @@
         private static void MostRepresentedCountry()
         {
             string sql = "SELECT TOP 1 country,COUNT(country) FROM FakePeople GROUP BY country ORDER BY COUNT(country) DESC";
-            people = Query(sql);
-            Console.WriteLine($"\nMost represented country is: {people[0].country}");
+            //people = Query(sql);
+            List<(string, int)> countryList = new List<(string, int)>();
+            using (SqlConnection connection = new SqlConnection(ConnectionHelper.CnnStr("PeopleDB")))
+            {
+                countryList= connection.Query<(string, int)>(sql).AsList<(string,int)>();
+            }
+            Console.WriteLine($"\nMost represented country is: {countryList[0].Item1} {countryList[0].Item2}");
             Wait();
 
         }
