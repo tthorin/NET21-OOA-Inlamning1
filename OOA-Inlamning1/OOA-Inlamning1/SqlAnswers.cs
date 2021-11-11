@@ -44,7 +44,7 @@
                     case ConsoleKey.D1 or ConsoleKey.NumPad1: DiffrentCountries(); break;
                     case ConsoleKey.D2 or ConsoleKey.NumPad2: FromNordenVsScandinavia(); break;
                     case ConsoleKey.D3 or ConsoleKey.NumPad3: MostRepresentedCountry(); break;
-                    case ConsoleKey.D4 or ConsoleKey.NumPad5: FirstTenLastNameStartWithL(); break;
+                    case ConsoleKey.D4 or ConsoleKey.NumPad4: FirstTenLastNameStartWithL(); break;
                     case ConsoleKey.D5 or ConsoleKey.NumPad5: FirstLastAlliteration(); break;
                     default:break;
                 }
