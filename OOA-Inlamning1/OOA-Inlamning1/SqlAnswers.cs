@@ -6,6 +6,7 @@
     using System.Collections.Generic;
     using System.Data.SqlClient;
     using static Helpers.SqlHelpers;
+    using static Helpers.ConsolePrintHelpers;
 
     internal static class SqlAnswers
     {
@@ -32,23 +33,30 @@
                 Console.Clear();
                 Console.WriteLine("Please select which question you would like the answer to:");
                 Console.WriteLine("1) How many diffrent countries are represented?");
-                Console.WriteLine("2) How many people are from Norden and Scandinavia, respectivly?");
-                Console.WriteLine("3) Which is the most represented country?");
-                Console.WriteLine("4) List first 10 users with a last name beginning with \"L\".");
-                Console.WriteLine("5) List all users with name and last name beginning with the same letter.");
+                Console.WriteLine("2) Are all usernames and passwords unique?");
+                Console.WriteLine("3) How many people are from Norden and Scandinavia, respectivly?");
+                Console.WriteLine("4) Which is the most represented country?");
+                Console.WriteLine("5) List first 10 users with a last name beginning with \"L\".");
+                Console.WriteLine("6) List all users with name and last name beginning with the same letter.");
                 Console.WriteLine("E or Escape) Exit application.");
-                Helpers.ConsolePrintHelpers.Wait(false,true);
+                Wait(false,true);
                 input = Console.ReadKey(true);
                 switch (input.Key)
                 {
                     case ConsoleKey.D1 or ConsoleKey.NumPad1: DiffrentCountries(); break;
-                    case ConsoleKey.D2 or ConsoleKey.NumPad2: FromNordenVsScandinavia(); break;
-                    case ConsoleKey.D3 or ConsoleKey.NumPad3: MostRepresentedCountry(); break;
-                    case ConsoleKey.D4 or ConsoleKey.NumPad4: FirstTenLastNameStartWithL(); break;
-                    case ConsoleKey.D5 or ConsoleKey.NumPad5: FirstLastAlliteration(); break;
+                    case ConsoleKey.D3 or ConsoleKey.NumPad3: FromNordenVsScandinavia(); break;
+                    case ConsoleKey.D4 or ConsoleKey.NumPad4: MostRepresentedCountry(); break;
+                    case ConsoleKey.D5 or ConsoleKey.NumPad5: FirstTenLastNameStartWithL(); break;
+                    case ConsoleKey.D6 or ConsoleKey.NumPad6: FirstLastAlliteration(); break;
+                    case ConsoleKey.D2 or ConsoleKey.NumPad2: UsernameAndPassword(); break;
                     default:break;
                 }
             } while (input.Key != ConsoleKey.Escape && input.Key != ConsoleKey.E);
+        }
+
+        private static void UsernameAndPassword()
+        {
+            throw new NotImplementedException();
         }
 
         private static void FirstLastAlliteration()
@@ -66,7 +74,7 @@
                 Console.WriteLine($"{counter,-3}) (id:{person.id,4}) {person.FullName}");
                 counter++;
             }
-            Helpers.ConsolePrintHelpers.Wait();
+            Wait();
         }
 
         private static void FirstTenLastNameStartWithL()
@@ -81,7 +89,7 @@
             string sql = "SELECT TOP 1 country,COUNT(country) FROM FakePeople GROUP BY country ORDER BY COUNT(country) DESC";
             people = Query(sql);
             Console.WriteLine($"\nMost represented country is: {people[0].country}");
-            ConsolePrintHelpers.Wait();
+            Wait();
 
         }
 
@@ -92,7 +100,10 @@
 
         private static void DiffrentCountries()
         {
-            throw new NotImplementedException();
+            var sql = "SELECT COUNT(DISTINCT country) FROM FakePeople";
+            var numberOfDiffrentCountries = ExecuteScalar(sql);
+            Console.WriteLine($"\nThere are people from {numberOfDiffrentCountries} diffrent countries in the table.");
+            Wait();
         }
     }
 
