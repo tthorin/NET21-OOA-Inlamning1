@@ -1,10 +1,9 @@
 ﻿namespace OOA_Inlamning1.Helpers
 {
-    using System;
+    using Dapper;
     using System.Collections.Generic;
     using System.Data.SqlClient;
     using System.Linq;
-    using Dapper;
 
     internal static class SqlHelpers
     {

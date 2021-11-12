@@ -4,10 +4,8 @@
     using OOA_Inlamning1.Helpers;
     using System;
     using System.Collections.Generic;
-    using System.Data.SqlClient;
-    using static Helpers.SqlHelpers;
     using static Helpers.ConsolePrintHelpers;
-    using Dapper;
+    using static Helpers.SqlHelpers;
 
     internal static class SqlAnswers
     {

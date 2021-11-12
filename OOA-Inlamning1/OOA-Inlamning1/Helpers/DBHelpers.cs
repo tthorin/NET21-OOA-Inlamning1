@@ -1,14 +1,8 @@
 ﻿namespace OOA_Inlamning1.Helpers
 {
-
-    using OOA_Inlamning1.Extensions;
     using System;
-    using System.Data.SqlClient;
-    using System.Xml.Linq;
-    using Dapper;
     using System.IO;
     using static Helpers.SqlHelpers;
-    using System.Configuration;
 
     internal static class DBHelpers
     {
@@ -25,7 +19,6 @@
 
         private static void CreateTable()
         {
-            //string filePath = ConfigurationManager.AppSettings.Get("sqlTableCreateFile");
             string sql = File.ReadAllText(sqlFile);
             Execute(sql);
         }
@@ -62,7 +55,7 @@
                 Console.Write($"Table {tableName} doesn't exist, would you like to (c)reate it or (e)xit? ");
                 input = Console.ReadLine().Trim().ToLower();
             } while (!(input == "c" || input == "create") && !(input == "e" || input == "exit"));
-            if (input[0] == 'c') Helpers.DBHelpers.CreateTable();
+            if (input[0] == 'c') CreateTable();
         }
 
 
@@ -74,7 +67,7 @@
                 Console.Write($"Database {dbName} doesn't exist, would you like to (c)reate it or (e)xit? ");
                 input = Console.ReadLine().Trim().ToLower();
             } while (!(input == "c" || input == "create") && !(input == "e" || input == "exit"));
-            if (input[0] == 'c') Helpers.DBHelpers.CreateDB(dbName);
+            if (input[0] == 'c') CreateDB(dbName);
         }
 
         internal static bool CheckData()
@@ -91,14 +84,16 @@
             Console.CursorVisible = true;
             if (CheckForDB() && CheckForTable()) AskToDeleteTable();
             if (!CheckForTable() && CheckForDB()) AskToDeleteDB();
-            Console.CursorVisible=false;
+            Console.CursorVisible = false;
         }
         private static void AskToDeleteDB()
         {
             string input = "";
+            string sql = $"SELECT count(id) FROM dbo.sysobjects where xtype = 'U'";
+            var numberOfTables = ExecuteScalar(sql);
             do
             {
-                Console.WriteLine($"Would you like to delete the database {dbName}?");
+                Console.WriteLine($"\nWould you like to delete the database {dbName} (there are {numberOfTables} tables in the DB)?");
                 Console.Write("Please type the whole word \"delete\" to delete it, or \"c\" or \"cancel\" to abort: ");
                 input = Console.ReadLine().Trim().ToLower();
             } while (!(input == "c" || input == "cancel") && !(input == "delete"));
@@ -116,7 +111,7 @@
             string input = "";
             do
             {
-                Console.WriteLine($"Would you like to delete the table {tableName}?");
+                Console.WriteLine($"\nWould you like to delete the table {tableName}?");
                 Console.Write("Please type the whole word \"delete\" to delete it, or \"c\" or \"cancel\" to abort: ");
                 input = Console.ReadLine().Trim().ToLower();
             } while (!(input == "c" || input == "cancel") && !(input == "delete"));

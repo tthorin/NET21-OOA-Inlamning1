@@ -21,27 +21,12 @@
             while (Console.KeyAvailable == false)
             {
 
-                for (int i = 0; i < 2; i++)
+                for (int i = 0; i < 10; i++)
                 {
-                    Console.SetCursorPosition(x, y);
-                    if (i == 0)
-                    {
-                        Console.SetCursorPosition(x, y);
-                        for (int j = 0; j < 5; j++)
-                        {
-                            Console.Write(".");
-                            Thread.Sleep(50);
-                        }
-                    }
-                    else
-                    {
-                        Console.SetCursorPosition(x, y);
-                        for (int k = 0; k < 5; k++)
-                        {
-                            Console.Write(" ");
-                            Thread.Sleep(50);
-                        }
-                    }
+                    if(i==0 || i==5)Console.SetCursorPosition(x, y);
+                    if (i < 5) Console.Write(".");
+                    else Console.Write(" ");
+                    Thread.Sleep(50);
                 }
             }
             Console.WriteLine();
