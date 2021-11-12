@@ -12,6 +12,7 @@
     internal static class SqlAnswers
     {
         static List<Person> people = new();
+        static internal string tableName = "";
 
         internal static void Start()
         {
@@ -20,13 +21,6 @@
 
         private static void AnswerMenu()
         {
-            /*Hur många olika länder finns representerade?
-            • Är alla username och password unika?
-            • Hur många är från Norden respektive Skandinavien?
-            • Vilket är det vanligaste landet?
-            • Lista de 10 första användarna vars efternamn börjar på bokstaven L
-            • Visa alla användare vars för- och efternamn har samma begynnelsebokstav (ex Peter
-            Parker, Bruce Banner, Janis Joplin)*/
             Console.CursorVisible = false;
             ConsoleKeyInfo input = new();
             do
@@ -61,7 +55,7 @@
             do
             {
                 Console.Clear();
-                Console.WriteLine("D) Press D if you wish to delete the datatable and database.");
+                if (DBHelpers.CheckForDB() && DBHelpers.CheckForTable()) Console.WriteLine("D) Press D if you wish to delete the datatable and database.");
                 Console.WriteLine("E or Escape) Exit application.");
                 Wait(false, true);
                 input = Console.ReadKey(true);
@@ -71,10 +65,11 @@
                     default: break;
                 }
             } while (input.Key != ConsoleKey.Escape && input.Key != ConsoleKey.E);
+            Console.CursorVisible = true;
         }
         private static void UsernameAndPassword()
         {
-            var sql = "SELECT COUNT(DISTINCT id),COUNT(DISTINCT username),COUNT(DISTINCT password) FROM FakePeople";
+            var sql = $"SELECT COUNT(DISTINCT id),COUNT(DISTINCT username),COUNT(DISTINCT password) FROM {tableName}";
             var values = QueryTupleIntIntInt(sql);
             Console.WriteLine($"There are {values[0].Item1} unique users, {values[0].Item2} unique usernames and {values[0].Item3} unique passwords.");
             Wait();
@@ -82,8 +77,10 @@
 
         private static void FirstLastAlliteration()
         {
-            string sql = "SELECT id,first_name,last_name FROM FakePeople WHERE LEFT(first_name,1) = LEFT(last_name,1) GROUP BY first_name,last_name,id";
+            string sql = $"SELECT id,first_name,last_name FROM {tableName} WHERE LEFT(first_name,1) = LEFT(last_name,1) GROUP BY first_name,last_name,id";
             people = QueryPerson(sql);
+            Console.WriteLine("Users with first and last name beginning with the same letter:");
+            Console.WriteLine("---------------------------------------------------------------");
             PrintPeopleList(people);
         }
 
@@ -91,14 +88,16 @@
 
         private static void FirstTenLastNameStartWithL()
         {
-            string sql = "SELECT TOP 10 id,first_name,last_name FROM FakePeople WHERE LOWER(last_name) LIKE 'l%'";
+            string sql = $"SELECT TOP 10 id,first_name,last_name FROM {tableName} WHERE LOWER(last_name) LIKE 'l%'";
             people = QueryPerson(sql);
+            Console.WriteLine("First 10 users with last name beginning with the letter \"L\"");
+            Console.WriteLine("-----------------------------------------------------------");
             PrintPeopleList(people);
         }
 
         private static void MostRepresentedCountry()
         {
-            string sql = "SELECT TOP 1 country,COUNT(country) FROM FakePeople GROUP BY country ORDER BY COUNT(country) DESC";
+            string sql = $"SELECT TOP 1 country,COUNT(country) FROM {tableName} GROUP BY country ORDER BY COUNT(country) DESC";
             var countryList = QueryTupleStringInt(sql);
             Console.WriteLine($"\nMost represented country is {countryList[0].Item1} with {countryList[0].Item2} unique users.");
             Wait();
@@ -107,7 +106,7 @@
 
         private static void FromNordenVsScandinavia()
         {
-            var sql = "SELECT (SELECT COUNT(id) FROM FakePeople WHERE country IN ('Sweden','Denmark','Norway')),(SELECT COUNT(id) FROM FakePeople WHERE country IN ('Sweden','Denmark','Finland','Norway','Iceland'))";
+            var sql = $"SELECT (SELECT COUNT(id) FROM {tableName} WHERE country IN ('Sweden','Denmark','Norway')),(SELECT COUNT(id) FROM {tableName} WHERE country IN ('Sweden','Denmark','Finland','Norway','Iceland'))";
             var usersFromDiffrentParts = QueryTupleIntIntInt(sql);
             Console.WriteLine($"\nThere are {usersFromDiffrentParts[0].Item1} users from Norden and {usersFromDiffrentParts[0].Item2} users from Scandinavia.");
             Wait();
@@ -115,7 +114,7 @@
 
         private static void DiffrentCountries()
         {
-            var sql = "SELECT COUNT(DISTINCT country) FROM FakePeople";
+            var sql = $"SELECT COUNT(DISTINCT country) FROM {tableName}";
             var numberOfDiffrentCountries = ExecuteScalar(sql);
             Console.WriteLine($"\nThere are people from {numberOfDiffrentCountries} diffrent countries in the table.");
             Wait();

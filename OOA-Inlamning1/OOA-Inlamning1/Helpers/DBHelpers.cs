@@ -14,31 +14,43 @@
     {
         private static string dbName = "TT_Net21_People";
         private static string tableName = "FakePeople";
-        internal static bool CheckForDB(string name)
+        private static string sqlFile = "";
+        internal static bool CheckForDB()
         {
             bool dbExists = false;
-            string sql = $"SELECT COUNT(name) FROM master.dbo.sysdatabases WHERE name = '{name}'";
-            if (ExecuteScalar(sql,"master")==1) dbExists = true;
+            string sql = $"SELECT COUNT(name) FROM master.dbo.sysdatabases WHERE name = '{dbName}'";
+            if (ExecuteScalar(sql, "master") == 1) dbExists = true;
             return dbExists;
         }
 
-        internal static void CreateTable()
+        private static void CreateTable()
         {
-            string filePath = ConfigurationManager.AppSettings.Get("sqlTableCreateFile");
-            string sql = File.ReadAllText(filePath);
-           Execute(sql);
+            //string filePath = ConfigurationManager.AppSettings.Get("sqlTableCreateFile");
+            string sql = File.ReadAllText(sqlFile);
+            Execute(sql);
         }
 
-        internal static void CreateDB(string dbName)
+        private static void CreateDB(string dbName)
         {
             string sql = $"IF NOT EXISTS (SELECT NAME FROM master.dbo.sysdatabases WHERE name = '{dbName}') CREATE DATABASE {dbName}";
-            Execute(sql,"master");
+            Execute(sql, "master");
 
         }
         internal static bool CheckForTable()
         {
             bool tableExists = false;
-            string sql = $"SELECT count(name) FROM dbo.sysobjects where name = 'FakePeople' and xtype = 'U'";
+            string[] files = Directory.GetFiles(@"..\..\..\SQL\", "*.sql");
+            sqlFile = files[0];
+            foreach (var line in File.ReadLines(sqlFile))
+            {
+                if (line.ToLower().Contains("create table"))
+                {
+                    tableName = line.Substring(13, line.IndexOf(' ', 13) - 13);
+                    SqlAnswers.tableName = tableName;
+                    break;
+                }
+            }
+            string sql = $"SELECT count(name) FROM dbo.sysobjects where name = '{tableName}' and xtype = 'U'";
             if (ExecuteScalar(sql) == 1) tableExists = true;
             return tableExists;
         }
@@ -68,24 +80,25 @@
         internal static bool CheckData()
         {
             Console.CursorVisible = true;
-            if (!CheckForDB(dbName)) AskToCreateDB();
-            if (CheckForDB(dbName) && !CheckForTable()) AskToCreateTable();
+            if (!CheckForDB()) AskToCreateDB();
+            if (CheckForDB() && !CheckForTable()) AskToCreateTable();
             Console.CursorVisible = false;
-            if (CheckForDB(dbName) && CheckForTable()) return true;
+            if (CheckForDB() && CheckForTable()) return true;
             else return false;
         }
         internal static void ExitCheckData()
         {
             Console.CursorVisible = true;
-            if (CheckForDB(dbName) && CheckForTable()) AskToDeleteTable();
-            if (CheckForDB(dbName)) AskToDeleteDB();
+            if (CheckForDB() && CheckForTable()) AskToDeleteTable();
+            if (!CheckForTable() && CheckForDB()) AskToDeleteDB();
+            Console.CursorVisible=false;
         }
         private static void AskToDeleteDB()
         {
             string input = "";
             do
             {
-                Console.WriteLine($"Would you like to delete the database {tableName}?";
+                Console.WriteLine($"Would you like to delete the database {dbName}?");
                 Console.Write("Please type the whole word \"delete\" to delete it, or \"c\" or \"cancel\" to abort: ");
                 input = Console.ReadLine().Trim().ToLower();
             } while (!(input == "c" || input == "cancel") && !(input == "delete"));
@@ -94,7 +107,7 @@
 
         private static void DeleteDB()
         {
-            var sql = $"DROP DATABASE {dbName}";
+            var sql = $"ALTER DATABASE {dbName} SET SINGLE_USER WITH ROLLBACK IMMEDIATE;DROP DATABASE {dbName}";
             Execute(sql, "master");
         }
 
