@@ -19,6 +19,10 @@
         {
             get { return first_name + " " + last_name; }
         }
+        public string AllInfo
+        {
+            get { return $"<{id,3}> {first_name,-10} {last_name,-14} {email,-30} {username,-13} {password,-13} {country,-15}"; }
+        }
 
     }
 }

@@ -31,6 +31,7 @@
                 Console.WriteLine("4) Which is the most represented country?");
                 Console.WriteLine("5) List first 10 users with a last name beginning with \"L\".");
                 Console.WriteLine("6) List all users with name and last name beginning with the same letter.");
+                Console.WriteLine("7) Search table for something.");
                 Console.WriteLine("E or Escape) Exit application.");
                 Wait(false, true);
                 input = Console.ReadKey(true);
@@ -42,6 +43,7 @@
                     case ConsoleKey.D5 or ConsoleKey.NumPad5: FirstTenLastNameStartWithL(); break;
                     case ConsoleKey.D6 or ConsoleKey.NumPad6: FirstLastAlliteration(); break;
                     case ConsoleKey.D2 or ConsoleKey.NumPad2: UsernameAndPassword(); break;
+                    case ConsoleKey.D7 or ConsoleKey.NumPad7: DoQuery(); break;
                     default: break;
                 }
             } while (input.Key != ConsoleKey.Escape && input.Key != ConsoleKey.E);
@@ -117,6 +119,32 @@
             Console.WriteLine($"\nThere are people from {numberOfDiffrentCountries} diffrent countries in the table.");
             Wait();
         }
+        private static void DoQuery()
+        {
+            var getTableNames = $"select name from sys.columns where object_id = object_id('dbo.{tableName}')";
+            var columnNames = QueryTupleStringInt(getTableNames);
+            ConsoleKeyInfo input;
+            do
+            {
+                Console.Clear();
+                int counter = 1;
+                Console.WriteLine("Columns in table:");
+                foreach (var name in columnNames)
+                {
+                    Console.WriteLine($"{counter}) {name.Item1}");
+                    counter++;
+                }
+                Console.Write("What would you like to search for?");
+                Wait(false, true);
+                input = Console.ReadKey(true);
+            } while (!(char.IsDigit(input.KeyChar) && (int.Parse(input.KeyChar.ToString()) > 0 && int.Parse(input.KeyChar.ToString()) <= columnNames.Count)));
+            string column = columnNames[int.Parse(input.KeyChar.ToString()) - 1].Item1;
+            Console.Write("Search for: ");
+            var inputStr = Console.ReadLine().Trim();
+            people = UserQuery(column, tableName, inputStr);
+            PrintPeopleFullInfoList(people);
+        }
+
     }
 
 }
