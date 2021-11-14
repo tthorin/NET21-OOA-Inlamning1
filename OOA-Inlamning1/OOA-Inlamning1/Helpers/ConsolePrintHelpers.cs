@@ -58,7 +58,7 @@
             }
             int counter = 1;
             //<{id,3}> {first_name,-10} {last_name,-14} {email,-30} {username,-13} {password,-13} {country,-15}
-            Console.WriteLine($"{"",5} {"Id",-5} {"First name",-10} {"Last name",-14} {"Email",-30} {"Username",-13} {"Password",-13} {"Country",-15}");
+            Console.WriteLine($"{"",5} {"Id",-4} {"First name",-10} {"Last name",-14} {"Email",-30} {"Username",-13} {"Password",-13} {"Country",-15}");
             foreach (var person in people)
             {
                 Console.WriteLine($"{counter,-3}) {person.AllInfo}");
