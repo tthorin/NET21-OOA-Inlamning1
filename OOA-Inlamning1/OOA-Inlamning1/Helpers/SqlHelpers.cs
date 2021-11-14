@@ -46,7 +46,7 @@
         }
         internal static List<Person> UserQuery(string column,string tableName, string searchFor)
         {
-            string sql = $"SELECT * FROM {tableName} WHERE {column} LIKE @Search";
+            string sql = $"SELECT * FROM {tableName} WHERE {column} LIKE @Search ORDER BY {column}";
             using (SqlConnection connection = new SqlConnection(ConnectionHelper.CnnStr("PeopleDB")))
             {
                 return connection.Query<Person>(sql, new {Search=searchFor +"%"}).ToList();

@@ -39,7 +39,7 @@
                 if (line.ToLower().Contains("create table"))
                 {
                     tableName = line.Substring(13, line.IndexOf(' ', 13) - 13);
-                    SqlAnswers.tableName = tableName;
+                    AccessDB.tableName = tableName;
                     break;
                 }
             }
