@@ -93,9 +93,7 @@
                 {
                     string column = columnNames[int.Parse(input.ToString()) - 1].Item1;
                     Console.Write($"\nSearch \"{column[..1].ToUpper() + column[1..].Replace('_', ' ')}\" for: ");
-                    Console.CursorVisible = true;
-                    var inputStr = Console.ReadLine().Trim();
-                    Console.CursorVisible = false;
+                    var inputStr = GetUserString();
                     people = UserQuery(column, tableName, inputStr);
                     PrintPeopleFullInfoList(people);
                 }
