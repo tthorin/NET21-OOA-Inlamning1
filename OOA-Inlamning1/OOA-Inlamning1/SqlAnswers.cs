@@ -10,6 +10,7 @@
         internal static void Start()
         {
             if (DBHelpers.CheckData()) AnswerMenu();
+            else Console.WriteLine("Could not locate any data to query, exiting...");
         }
 
         private static void AnswerMenu()

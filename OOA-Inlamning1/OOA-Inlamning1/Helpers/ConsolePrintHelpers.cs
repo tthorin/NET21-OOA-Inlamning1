@@ -56,8 +56,8 @@
                 Hold();
                 return;
             }
+
             int counter = 1;
-            //<{id,3}> {first_name,-10} {last_name,-14} {email,-30} {username,-13} {password,-13} {country,-15}
             Console.WriteLine($"{"",5} {"Id",-4} {"First name",-10} {"Last name",-14} {"Email",-30} {"Username",-13} {"Password",-13} {"Country",-15}");
             foreach (var person in people)
             {
@@ -65,6 +65,14 @@
                 counter++;
             }
             Hold();
+        }
+        internal static string GetUserString(bool toLower = false)
+        {
+            Console.CursorVisible = true;
+            var input = Console.ReadLine().Trim();
+            if (toLower) input = input.ToLower();
+            Console.CursorVisible=false;
+            return input;
         }
     }
 }
