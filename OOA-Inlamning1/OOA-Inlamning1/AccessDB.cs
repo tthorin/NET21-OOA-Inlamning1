@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Data;
     using System.Xml.Linq;
     using static Helpers.ConsolePrintHelpers;
     using static Helpers.SqlHelpers;
@@ -10,6 +11,7 @@
     {
         static List<Person> people = new();
         internal static string tableName = "";
+        static SqlNoDapper snd = new();
         internal static void UsernameAndPassword()
         {
             var sql = $"SELECT COUNT(DISTINCT id),COUNT(DISTINCT username),COUNT(DISTINCT password) FROM {tableName}";
@@ -55,6 +57,11 @@
             Wait();
         }
 
+        internal static void DoSingleColumnQuery()
+        {
+            DoQuery(true);
+        }
+
         internal static void DiffrentCountries()
         {
             var sql = $"SELECT COUNT(DISTINCT country) FROM {tableName}";
@@ -62,7 +69,7 @@
             Console.WriteLine($"\nThere are people from {numberOfDiffrentCountries} diffrent countries in the table.");
             Wait();
         }
-        internal static void DoQuery()
+        internal static void DoQuery(bool doSingleColumn = false)
         {
             var getTableNames = $"select name from sys.columns where object_id = object_id('dbo.{tableName}')";
             var columnNames = QueryTupleStringInt(getTableNames);
@@ -72,19 +79,7 @@
             {
                 do
                 {
-                    Console.Clear();
-                    int counter = 1;
-                    Console.WriteLine("Columns in table:\n");
-                    foreach (var name in columnNames)
-                    {
-                        Console.WriteLine($"{counter}) {name.Item1[..1].ToUpper() + name.Item1[1..].Replace('_', ' ')}");
-                        counter++;
-                    }
-                    Console.WriteLine("\nP) to return to previous menu.");
-                    Console.Write("\nWhat would you like to search for?");
-                    Wait(false, true);
-                    input = Console.ReadKey(true).KeyChar;
-
+                    input = QueryMenu(columnNames,doSingleColumn);
                     int x = char.IsDigit(input) ? int.Parse(input.ToString()) : 0;
                     inputInRange = x > 0 && x <= columnNames.Count;
 
@@ -94,10 +89,49 @@
                     string column = columnNames[int.Parse(input.ToString()) - 1].Item1;
                     Console.Write($"\nSearch \"{column[..1].ToUpper() + column[1..].Replace('_', ' ')}\" for: ");
                     var inputStr = GetUserString();
-                    people = UserQuery(column, tableName, inputStr);
-                    PrintPeopleFullInfoList(people);
+                    if (!doSingleColumn)
+                    {   
+                        DapperQuery(column, inputStr);
+                    }
+                    else
+                    {
+                        NoDapperQuery(column, inputStr);
+                    }
                 }
+
             }
+        }
+
+        private static void NoDapperQuery(string column, string inputStr)
+        {
+            string sql = $"SELECT {column} FROM {tableName} WHERE {column} LIKE @TOSEARCHFOR";
+            DataTable dt = snd.GetDataTable(sql, new (string, string)[] { ("@TOSEARCHFOR", inputStr + "%") });
+            PrintDtSingleColumns(column, dt);
+        }
+
+        private static void DapperQuery(string column, string inputStr)
+        {
+            people = UserQuery(column, tableName, inputStr);
+            PrintPeopleFullInfoList(people);
+        }
+
+        private static char QueryMenu(List<(string name, int unused)> columnNames,bool singleColumnAnswer)
+        {
+            Console.Clear();
+            int counter = 1;
+            string header = singleColumnAnswer ? "Query with single column answer" : "Query with all information answer";
+            Console.WriteLine(header);
+            Console.WriteLine(new string('-',header.Length));
+            Console.WriteLine("Columns in table:\n");
+            foreach (var name in columnNames)
+            {
+                Console.WriteLine($"{counter}) {name.Item1[..1].ToUpper() + name.Item1[1..].Replace('_', ' ')}");
+                counter++;
+            }
+            Console.WriteLine("\nP) to return to previous menu.");
+            Console.Write("\nWhat would you like to search for?");
+            Wait(false, true);
+            return Console.ReadKey(true).KeyChar;
         }
     }
 }

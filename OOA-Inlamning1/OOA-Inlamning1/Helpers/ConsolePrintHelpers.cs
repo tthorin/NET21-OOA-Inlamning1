@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+using System.Data;
     using System.Linq;
     using System.Text;
     using System.Threading;
@@ -64,6 +65,21 @@
                 Console.WriteLine($"{counter,-3}) {person.AllInfo}");
                 counter++;
             }
+            Hold();
+        }
+        internal static void PrintDtSingleColumns(string columnName, DataTable dt)
+        {
+            Console.WriteLine("\n"+columnName+":");
+            Console.WriteLine(new String('-',columnName.Length+1));
+            if (dt.Rows.Count > 0)
+            {
+                foreach (DataRow row in dt.Rows)
+                {
+                    if (row[0] != null) Console.WriteLine(row[0]);
+                }
+                Console.WriteLine();
+            }
+            else Console.WriteLine("\nNothing found.");
             Hold();
         }
         internal static string GetUserString(bool toLower = false)
