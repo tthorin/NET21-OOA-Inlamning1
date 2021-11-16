@@ -5,11 +5,12 @@
     using static Helpers.SqlHelpers;
     using static Helpers.ConsolePrintHelpers;
     using System.Configuration;
+    using System.Collections.Generic;
 
     internal static class DBHelpers
     {
         private static string dbName = "TT_Net21_People";
-        private static string tableName = "FakePeople";
+        private static string tableName = "";
         private static string sqlFile = "";
         internal static bool CheckForDB()
         {
@@ -38,7 +39,7 @@
             return serverExists;
         }
 
-        private static void CreateTable()
+        private static void ImportTable()
         {
             //todo: implement msg on no import file
             string sql = File.ReadAllText(sqlFile);
@@ -51,32 +52,40 @@
             Execute(sql, "master");
 
         }
-        internal static bool CheckForTable(bool verboose = false)
-        {
-            bool tableExists = false;
-            if (CheckForImportFile()) tableExists = CheckForImportTable();
-            else tableExists = verboose ? CheckForOtherTables(true) : tableExists = CheckForOtherTables();
-            return tableExists;
-        }
+        //internal static bool CheckForTable(bool verboose = false)
+        //{
+        //    bool tableExists = false;
+        //    if (CheckForImportFile()) tableExists = CheckForImportTable();
+        //    else tableExists = verboose ? CheckForOtherTables(true) : CheckForOtherTables();
+        //    return tableExists;
+        //}
 
-        private static bool CheckForOtherTables(bool verboose = false)
+        private static bool CheckForOtherTables()
         {
-            if (verboose) Console.WriteLine($"No .sql file found in {ConfigurationManager.AppSettings["sqlDir"]}, looking for other tables in {dbName}...");
-            bool tableExists = false;
-            string sql = "SELECT count(name) FROM dbo.sysobjects where xtype = 'U'";
-            if (ExecuteScalar(sql) >= 1)
+            bool otherTableExists = false;
+            var file = ConfigurationManager.AppSettings["importedTables"];
+            List<string> tables = new();
+            if (File.Exists(file)) tables.AddRange(File.ReadAllLines(file));
+            if (tables.Count > 0)
             {
-                tableExists = true;
-                var getTableName = "SELECT top 1 name FROM dbo.sysobjects where xtype = 'U'";
-                var tableList = QueryTupleStringInt(getTableName);
-                tableName = tableList[0].Item1;
-                AccessDB.tableName = tableName;
+                SetTableName(tables[0]);
+                otherTableExists = true;
             }
-            else if (verboose) Console.WriteLine("No other tables found...");
-            return tableExists;
+            return otherTableExists;
         }
 
-        private static bool CheckForImportTable()
+        private static void SetTableName(string tableName)
+        {
+            DBHelpers.tableName = tableName;
+            AccessDB.tableName = tableName;
+            string file = ConfigurationManager.AppSettings["importedTables"];
+            List<string> importedTables = new();
+            if (File.Exists(file)) importedTables.AddRange(File.ReadAllLines(file));
+            if (!importedTables.Contains(tableName))importedTables.Insert(0, tableName);
+            File.WriteAllLines(file, importedTables);
+        }
+
+        internal static bool CheckForTable()
         {
             string sql = $"SELECT count(name) FROM dbo.sysobjects where name = '{tableName}' and xtype = 'U'";
             return ExecuteScalar(sql) == 1;
@@ -94,8 +103,7 @@
                 {
                     if (line.ToLower().Contains("create table"))
                     {
-                        tableName = line.Substring(13, line.IndexOf(' ', 13) - 13);
-                        AccessDB.tableName = tableName;
+                        SetTableName(line.Substring(13, line.IndexOf(' ', 13) - 13));
                         break;
                     }
                 }
@@ -103,7 +111,7 @@
             return fileExists;
         }
 
-        private static void AskToCreateTable()
+        private static void AskToImportTable()
         {
             string input = "";
             do
@@ -111,7 +119,7 @@
                 Console.Write($"Table {tableName} doesn't exist, would you like to (c)reate it or (e)xit? ");
                 input = GetUserString(true);
             } while (!(input == "c" || input == "create") && !(input == "e" || input == "exit"));
-            if (input[0] == 'c') CreateTable();
+            if (input[0] == 'c') ImportTable();
         }
 
 
@@ -130,7 +138,9 @@
         {
             if (!CheckForDB()) AskToCreateDB();
             //todo: fix this logic should be check db>check import file/table > ask to create if file and no table> check for any other table
-            if (CheckForDB() && CheckForImportFile() && !CheckForTable(true)) AskToCreateTable();
+            //todo: save last used table in file
+            if (CheckForDB() && CheckForImportFile() && !CheckForTable()) AskToImportTable();
+            if (CheckForDB() && !CheckForTable()) CheckForOtherTables();
             if (CheckForDB() && CheckForTable()) return true;
             else return false;
         }
@@ -157,6 +167,7 @@
 
         private static void DeleteDB()
         {
+            File.WriteAllText(ConfigurationManager.AppSettings["importedTables"], "");
             var sql = $"ALTER DATABASE {dbName} SET SINGLE_USER WITH ROLLBACK IMMEDIATE;DROP DATABASE {dbName}";
             Execute(sql, "master");
         }
@@ -175,6 +186,15 @@
 
         private static void DeleteTable()
         {
+            var file = ConfigurationManager.AppSettings["importedTables"];
+            List<string> importedTables = new();
+            if (File.Exists(file)) importedTables.AddRange(File.ReadAllLines(file));
+            if (importedTables.Count > 0)
+            {
+                importedTables.RemoveAt(importedTables.FindIndex(x => x == tableName));
+            }
+            File.WriteAllLines(file, importedTables);
+
             var sql = $"DROP TABLE {tableName}";
             Execute(sql);
         }
