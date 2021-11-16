@@ -9,7 +9,7 @@
 
     internal static class DBHelpers
     {
-        private static string dbName = "TT_Net21_People";
+        internal static string DbName { get; } = "TT_Net21_People";
         private static string tableName = "";
         private static string sqlFile = "";
         internal static bool CheckForDB()
@@ -17,7 +17,7 @@
             bool isThereAServer = CheckForDBServer();
             bool dbExists = false;
 
-            string sql = $"SELECT COUNT(name) FROM master.dbo.sysdatabases WHERE name = '{dbName}'";
+            string sql = $"SELECT COUNT(name) FROM master.dbo.sysdatabases WHERE name = '{DbName}'";
             if (ExecuteScalar(sql, "master") == 1) dbExists = true;
             return dbExists;
         }
@@ -41,9 +41,13 @@
 
         private static void ImportTable()
         {
-            //todo: implement msg on no import file
             string sql = File.ReadAllText(sqlFile);
             Execute(sql);
+            string file = ConfigurationManager.AppSettings["importedTables"];
+            List<string> importedTables = new();
+            if (File.Exists(file)) importedTables.AddRange(File.ReadAllLines(file));
+            if (!importedTables.Contains(tableName)) importedTables.Insert(0, tableName);
+            File.WriteAllLines(file, importedTables);
         }
 
         private static void CreateDB(string dbName)
@@ -52,13 +56,7 @@
             Execute(sql, "master");
 
         }
-        //internal static bool CheckForTable(bool verboose = false)
-        //{
-        //    bool tableExists = false;
-        //    if (CheckForImportFile()) tableExists = CheckForImportTable();
-        //    else tableExists = verboose ? CheckForOtherTables(true) : CheckForOtherTables();
-        //    return tableExists;
-        //}
+        
 
         private static bool CheckForOtherTables()
         {
@@ -78,22 +76,26 @@
         {
             DBHelpers.tableName = tableName;
             AccessDB.tableName = tableName;
-            string file = ConfigurationManager.AppSettings["importedTables"];
-            List<string> importedTables = new();
-            if (File.Exists(file)) importedTables.AddRange(File.ReadAllLines(file));
-            if (!importedTables.Contains(tableName))importedTables.Insert(0, tableName);
-            File.WriteAllLines(file, importedTables);
+            
         }
 
-        internal static bool CheckForTable()
+        internal static bool CheckForTable(string name = "")
         {
-            string sql = $"SELECT count(name) FROM dbo.sysobjects where name = '{tableName}' and xtype = 'U'";
-            return ExecuteScalar(sql) == 1;
+            bool tableExists = false;
+            string localName = name == "" ? tableName : name;
+            string sql = $"SELECT count(name) FROM dbo.sysobjects where name = '{localName}' and xtype = 'U'";
+            if (ExecuteScalar(sql) == 1)
+            {
+                SetTableName(localName);
+                tableExists = true;
+            }
+            return tableExists;
         }
 
-        private static bool CheckForImportFile()
+        private static (bool, string) CheckForImportFile()
         {
             bool fileExists = false;
+            string tableNameFromFile = "";
             string[] files = Directory.GetFiles(ConfigurationManager.AppSettings["sqlDir"], "*.sql");
             if (files.Length > 0)
             {
@@ -103,23 +105,28 @@
                 {
                     if (line.ToLower().Contains("create table"))
                     {
-                        SetTableName(line.Substring(13, line.IndexOf(' ', 13) - 13));
+                        //todo: make nicer substring selection
+                        tableNameFromFile = (line.Substring(13, line.IndexOf(' ', 13) - 13));
                         break;
                     }
                 }
             }
-            return fileExists;
+            return (fileExists, tableNameFromFile);
         }
 
-        private static void AskToImportTable()
+        private static void AskToImportTable(string nameFromFile)
         {
             string input = "";
             do
             {
-                Console.Write($"Table {tableName} doesn't exist, would you like to (c)reate it or (e)xit? ");
+                Console.Write($"Table {nameFromFile} doesn't exist, would you like to (c)reate it or (s)kip? ");
                 input = GetUserString(true);
-            } while (!(input == "c" || input == "create") && !(input == "e" || input == "exit"));
-            if (input[0] == 'c') ImportTable();
+            } while (!(input == "c" || input == "create") && !(input == "s" || input == "skip"));
+            if (input[0] == 'c')
+            {
+                SetTableName(nameFromFile);
+                ImportTable();
+            }
         }
 
 
@@ -128,21 +135,25 @@
             string input = "";
             do
             {
-                Console.Write($"Database {dbName} doesn't exist, would you like to (c)reate it or (e)xit? ");
+                Console.Write($"Database {DbName} doesn't exist, would you like to (c)reate it or (s)kip? ");
                 input = GetUserString(true);
-            } while (!(input == "c" || input == "create") && !(input == "e" || input == "exit"));
-            if (input[0] == 'c') CreateDB(dbName);
+            } while (!(input == "c" || input == "create") && !(input == "s" || input == "skip"));
+            if (input[0] == 'c') CreateDB(DbName);
         }
 
-        internal static bool CheckData()
+        internal static (bool,string) CheckData()
         {
+            (bool exists, string tableName) data = (false,"");
+            (bool exists, string tableName) importFile = CheckForImportFile();
             if (!CheckForDB()) AskToCreateDB();
-            //todo: fix this logic should be check db>check import file/table > ask to create if file and no table> check for any other table
-            //todo: save last used table in file
-            if (CheckForDB() && CheckForImportFile() && !CheckForTable()) AskToImportTable();
-            if (CheckForDB() && !CheckForTable()) CheckForOtherTables();
-            if (CheckForDB() && CheckForTable()) return true;
-            else return false;
+            if (CheckForDB() && importFile.exists && !CheckForTable(importFile.tableName)) AskToImportTable(importFile.tableName);
+            if (CheckForDB() && !CheckForTable(importFile.tableName)) CheckForOtherTables();
+            if (CheckForDB() && CheckForTable())
+            {
+                data.exists = true;
+                data.tableName = tableName;
+            }
+            return data;
         }
         internal static void ExitCheckData()
         {
@@ -158,7 +169,7 @@
             var numberOfTables = ExecuteScalar(sql);
             do
             {
-                Console.WriteLine($"\nWould you like to delete the database {dbName} (there are {numberOfTables} tables in the DB)?");
+                Console.WriteLine($"\nWould you like to delete the database {DbName} (there are {numberOfTables} tables in the DB)?");
                 Console.Write("Please type the whole word \"delete\" to delete it, or \"c\" or \"cancel\" to abort: ");
                 input = GetUserString(true);
             } while (!(input == "c" || input == "cancel") && !(input == "delete"));
@@ -168,7 +179,7 @@
         private static void DeleteDB()
         {
             File.WriteAllText(ConfigurationManager.AppSettings["importedTables"], "");
-            var sql = $"ALTER DATABASE {dbName} SET SINGLE_USER WITH ROLLBACK IMMEDIATE;DROP DATABASE {dbName}";
+            var sql = $"ALTER DATABASE {DbName} SET SINGLE_USER WITH ROLLBACK IMMEDIATE;DROP DATABASE {DbName}";
             Execute(sql, "master");
         }
 
