@@ -11,10 +11,9 @@
     {
         internal static string DbName { get; } = "TT_Net21_People";
         private static string tableName = "";
-        private static string sqlFile = "";
         internal static bool CheckForDB()
         {
-            bool isThereAServer = CheckForDBServer();
+            CheckForDBServer();
             bool dbExists = false;
 
             string sql = $"SELECT COUNT(name) FROM master.dbo.sysdatabases WHERE name = '{DbName}'";
@@ -22,12 +21,11 @@
             return dbExists;
         }
 
-        private static bool CheckForDBServer()
+        private static void CheckForDBServer()
         {
-            var serverExists = false;
             try
             {
-                serverExists = ExecuteScalar("SELECT COUNT(@@VERSION)", "master") == 1;
+                ExecuteScalar("SELECT COUNT(@@VERSION)", "master");
             }
             catch (Exception)
             {
@@ -36,12 +34,11 @@
                 Hold();
                 Environment.Exit(0);
             }
-            return serverExists;
         }
 
-        private static void ImportTable()
+        private static void ImportTable(string importFile)
         {
-            string sql = File.ReadAllText(sqlFile);
+            string sql = File.ReadAllText(importFile);
             Execute(sql);
             string file = ConfigurationManager.AppSettings["importedTables"];
             List<string> importedTables = new();
@@ -56,27 +53,25 @@
             Execute(sql, "master");
 
         }
-        
 
-        private static bool CheckForOtherTables()
+
+        private static int CheckForOtherTables()
         {
-            bool otherTableExists = false;
+            int numberOfTables = 0;
             var file = ConfigurationManager.AppSettings["importedTables"];
             List<string> tables = new();
             if (File.Exists(file)) tables.AddRange(File.ReadAllLines(file));
-            if (tables.Count > 0)
-            {
-                SetTableName(tables[0]);
-                otherTableExists = true;
-            }
-            return otherTableExists;
+            if (tables.Count > 0 && tableName == "") SetTableName(tables[0]);
+            if (tables.Count > 0) numberOfTables = tables.Count;
+            return numberOfTables;
         }
 
         private static void SetTableName(string tableName)
         {
             DBHelpers.tableName = tableName;
             AccessDB.tableName = tableName;
-            
+            SqlAnswers.tableName = tableName;
+
         }
 
         internal static bool CheckForTable(string name = "")
@@ -92,40 +87,78 @@
             return tableExists;
         }
 
-        private static (bool, string) CheckForImportFile()
+        internal static void ChangeTable()
         {
-            bool fileExists = false;
+            List<string> tables = new();
+            string file = ConfigurationManager.AppSettings["importedTables"];
+            if (File.Exists(file)) tables.AddRange(File.ReadAllLines(file));
+            int choice = ChangeTableMenu(tables);
+            if (choice != -1) SetTableName(tables[choice]);
+        }
+
+        private static int ChangeTableMenu(List<string> tables)
+        {
+            char input = ' ';
+            int choice = -1;
+            bool inRange = false;
+            Console.Clear();
+            do
+            {
+                Console.WriteLine($"Current table is: {tableName}");
+                Console.WriteLine();
+                for (int i = 0; i < tables.Count; i++)
+                {
+                    Console.WriteLine($"{i + 1}) {tables[i]}");
+                }
+                Console.WriteLine("\nP) Previous menu.");
+                input = Console.ReadKey(true).KeyChar;
+                choice = char.IsDigit(input) ? Int32.Parse(input.ToString()) : -1;
+                if (choice > 0 && choice <= tables.Count)
+                {
+                    choice--;
+                    inRange = true;
+                }
+
+            } while (!inRange && input.ToString().ToLower() != "p");
+            return choice;
+        }
+
+        private static void CheckForImportFiles()
+        {
             string tableNameFromFile = "";
             string[] files = Directory.GetFiles(ConfigurationManager.AppSettings["sqlDir"], "*.sql");
             if (files.Length > 0)
             {
-                fileExists = true;
-                sqlFile = files[0];
-                foreach (var line in File.ReadLines(sqlFile))
+                foreach (var file in files)
                 {
-                    if (line.ToLower().Contains("create table"))
+                    tableNameFromFile = "";
+                    foreach (var line in File.ReadLines(file))
                     {
-                        //todo: make nicer substring selection
-                        tableNameFromFile = (line.Substring(13, line.IndexOf(' ', 13) - 13));
-                        break;
+                        if (line.ToLower().Contains("create table"))
+                        {
+                            int idxSecondSpace = line.Trim().IndexOf(' ', line.Trim().IndexOf(' ') + 1);
+                            int length = line.Trim().IndexOf('(') - idxSecondSpace;
+                            tableNameFromFile = line.Substring(idxSecondSpace, length).Trim();
+                            break;
+                        }
                     }
+                    if (!CheckForTable(tableNameFromFile)) AskToImportTable(tableNameFromFile, file);
                 }
             }
-            return (fileExists, tableNameFromFile);
         }
 
-        private static void AskToImportTable(string nameFromFile)
+        private static void AskToImportTable(string nameFromFile, string file)
         {
             string input = "";
             do
             {
-                Console.Write($"Table {nameFromFile} doesn't exist, would you like to (c)reate it or (s)kip? ");
-                input = GetUserString(true);
-            } while (!(input == "c" || input == "create") && !(input == "s" || input == "skip"));
-            if (input[0] == 'c')
+                Console.Write($"Table {nameFromFile} doesn't exist, would you like to (i)mport it or (s)kip? ");
+                input = GetUserString(true).ToLower().Trim();
+            } while (!(input == "i" || input == "import") && !(input == "s" || input == "skip"));
+            if (input[0] == 'i')
             {
                 SetTableName(nameFromFile);
-                ImportTable();
+                ImportTable(file);
             }
         }
 
@@ -141,13 +174,15 @@
             if (input[0] == 'c') CreateDB(DbName);
         }
 
-        internal static (bool,string) CheckData()
+        internal static (bool, string, int) CheckData()
         {
-            (bool exists, string tableName) data = (false,"");
-            (bool exists, string tableName) importFile = CheckForImportFile();
+            (bool exists, string tableName, int numberOfTables) data = (false, "", 0);
             if (!CheckForDB()) AskToCreateDB();
-            if (CheckForDB() && importFile.exists && !CheckForTable(importFile.tableName)) AskToImportTable(importFile.tableName);
-            if (CheckForDB() && !CheckForTable(importFile.tableName)) CheckForOtherTables();
+            if (CheckForDB())
+            {
+                CheckForImportFiles();
+                data.numberOfTables = CheckForOtherTables();
+            }
             if (CheckForDB() && CheckForTable())
             {
                 data.exists = true;
@@ -173,7 +208,13 @@
                 Console.Write("Please type the whole word \"delete\" to delete it, or \"c\" or \"cancel\" to abort: ");
                 input = GetUserString(true);
             } while (!(input == "c" || input == "cancel") && !(input == "delete"));
-            if (input == "delete") DeleteDB();
+            if (input == "delete" && numberOfTables == 0) DeleteDB();
+            else if (input == "delete")
+            {
+                Console.WriteLine($"Are you sure? There are still {numberOfTables} tables in the database, their data will be lost.");
+                Console.Write("Type the whole word \"delete\" again to delete, or anything else to cancel: ");
+                if (GetUserString(true) == "delete") DeleteDB();
+            }
         }
 
         private static void DeleteDB()
@@ -185,28 +226,34 @@
 
         private static void AskToDeleteTable()
         {
-            string input = "";
-            do
+            List<string> tables = new();
+            var tableFile = ConfigurationManager.AppSettings["importedTables"];
+            if (File.Exists(tableFile)) tables.AddRange(File.ReadAllLines(tableFile));
+            foreach (var table in tables)
             {
-                Console.WriteLine($"\nWould you like to delete the table {tableName}?");
-                Console.Write("Please type the whole word \"delete\" to delete it, or \"c\" or \"cancel\" to abort: ");
-                input = GetUserString(true);
-            } while (!(input == "c" || input == "cancel") && !(input == "delete"));
-            if (input == "delete") DeleteTable();
+                string input = "";
+                do
+                {
+                    Console.WriteLine($"\nWould you like to delete the table {table}?");
+                    Console.Write("Please type the whole word \"delete\" to delete it, or \"c\" or \"cancel\" to abort: ");
+                    input = GetUserString(true);
+                } while (!(input == "c" || input == "cancel") && !(input == "delete"));
+                if (input == "delete") DeleteTable(table);
+            }
         }
 
-        private static void DeleteTable()
+        private static void DeleteTable(string table)
         {
             var file = ConfigurationManager.AppSettings["importedTables"];
             List<string> importedTables = new();
             if (File.Exists(file)) importedTables.AddRange(File.ReadAllLines(file));
             if (importedTables.Count > 0)
             {
-                importedTables.RemoveAt(importedTables.FindIndex(x => x == tableName));
+                importedTables.RemoveAt(importedTables.FindIndex(x => x == table));
             }
             File.WriteAllLines(file, importedTables);
 
-            var sql = $"DROP TABLE {tableName}";
+            var sql = $"DROP TABLE {table}";
             Execute(sql);
         }
     }

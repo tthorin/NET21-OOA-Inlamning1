@@ -73,9 +73,11 @@ using System.Data;
             Console.WriteLine(new String('-',columnName.Length+1));
             if (dt.Rows.Count > 0)
             {
+                int counter = 1;
                 foreach (DataRow row in dt.Rows)
                 {
-                    if (row[0] != null) Console.WriteLine(row[0]);
+                    if (row[0] != null) Console.WriteLine($"{counter,3}) {row[0]}");
+                    counter++;
                 }
                 Console.WriteLine();
             }
