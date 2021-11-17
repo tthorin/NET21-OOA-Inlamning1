@@ -43,7 +43,7 @@
             string file = ConfigurationManager.AppSettings["importedTables"];
             List<string> importedTables = new();
             if (File.Exists(file)) importedTables.AddRange(File.ReadAllLines(file));
-            if (!importedTables.Contains(tableName)) importedTables.Insert(0, tableName);
+            if (!importedTables.Contains(tableName)) importedTables.Add(tableName);
             File.WriteAllLines(file, importedTables);
         }
 
@@ -98,8 +98,8 @@
 
         private static int ChangeTableMenu(List<string> tables)
         {
-            char input = ' ';
-            int choice = -1;
+            char input;
+            int choice;
             bool inRange = false;
             Console.Clear();
             do
@@ -125,7 +125,7 @@
 
         private static void CheckForImportFiles()
         {
-            string tableNameFromFile = "";
+            string tableNameFromFile;
             string[] files = Directory.GetFiles(ConfigurationManager.AppSettings["sqlDir"], "*.sql");
             if (files.Length > 0)
             {
@@ -149,7 +149,7 @@
 
         private static void AskToImportTable(string nameFromFile, string file)
         {
-            string input = "";
+            string input;
             do
             {
                 Console.Write($"Table {nameFromFile} doesn't exist, would you like to (i)mport it or (s)kip? ");
@@ -165,7 +165,7 @@
 
         private static void AskToCreateDB()
         {
-            string input = "";
+            string input;
             do
             {
                 Console.Write($"Database {DbName} doesn't exist, would you like to (c)reate it or (s)kip? ");
@@ -199,7 +199,7 @@
         }
         private static void AskToDeleteDB()
         {
-            string input = "";
+            string input;
             string sql = $"SELECT count(id) FROM dbo.sysobjects where xtype = 'U'";
             var numberOfTables = ExecuteScalar(sql);
             do
@@ -231,7 +231,7 @@
             if (File.Exists(tableFile)) tables.AddRange(File.ReadAllLines(tableFile));
             foreach (var table in tables)
             {
-                string input = "";
+                string input;
                 do
                 {
                     Console.WriteLine($"\nWould you like to delete the table {table}?");
