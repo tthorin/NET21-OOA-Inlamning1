@@ -7,14 +7,18 @@
 
     internal static class SqlAnswers
     {
+        private static int numberOfTables = 0;
+        internal static string tableName = "";
         internal static void Start()
         {
-            (bool dataExists, string name) = DBHelpers.CheckData();
-            if (dataExists) AnswerMenu(name);
+            (bool dataExists, string name,int tables) = DBHelpers.CheckData();
+            numberOfTables = tables;
+            tableName = name;
+            if (dataExists) AnswerMenu();
             else Console.WriteLine("Could not locate any data to query, exiting...");
         }
 
-        private static void AnswerMenu(string tableName)
+        private static void AnswerMenu()
         {
             Console.CursorVisible = false;
             ConsoleKeyInfo input = new();
@@ -31,6 +35,7 @@
                 Console.WriteLine("6) List all users with name and last name beginning with the same letter.");
                 Console.WriteLine("\n7) Do a custom search, all info reply.");
                 Console.WriteLine("8) Do a custom search, single column reply.");
+                if (numberOfTables>1)Console.WriteLine("\nC) Change table.");
                 Console.WriteLine("\nE or Escape) Exit application.");
                 Wait(false, true);
                 input = Console.ReadKey(true);
@@ -44,6 +49,7 @@
                     case ConsoleKey.D2 or ConsoleKey.NumPad2: AccessDB.UsernameAndPassword(); break;
                     case ConsoleKey.D7 or ConsoleKey.NumPad7: AccessDB.DoQuery(); break;
                     case ConsoleKey.D8 or ConsoleKey.NumPad8: AccessDB.DoSingleColumnQuery(); break;
+                    case ConsoleKey.C: DBHelpers.ChangeTable(); break;
                     default: break;
                 }
             } while (input.Key != ConsoleKey.Escape && input.Key != ConsoleKey.E);
