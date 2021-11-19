@@ -30,7 +30,7 @@
                 return connection.Query<Person>(sql).ToList();
             }
         }
-
+      
         internal static List<(string, int)> QueryTupleStringInt(string sql, string connectionString = "PeopleDB")
         {
             using (SqlConnection connection = new SqlConnection(ConnectionHelper.CnnStr(connectionString)))
