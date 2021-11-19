@@ -149,7 +149,7 @@
         {
             Console.CursorVisible = true;
             if (CheckForDB() && CheckForTable()) DbDeleteItemHelper.AskToDeleteTable();
-            if (!CheckForTable() && CheckForDB()) DbDeleteItemHelper.AskToDeleteDB();
+            if (CheckForDB()) DbDeleteItemHelper.AskToDeleteDB();
             Console.CursorVisible = false;
         }
     }
