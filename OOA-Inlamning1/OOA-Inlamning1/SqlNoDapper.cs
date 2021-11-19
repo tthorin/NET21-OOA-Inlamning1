@@ -1,24 +1,24 @@
 ﻿namespace OOA_Inlamning1
 {
+    using Helpers;
     using System.Data;
     using System.Data.SqlClient;
-    using Helpers;
 
     internal class SqlNoDapper
     {
         internal string ConnectionString { get; set; } = @"Server={1};Database={0};Trusted_Connection=True;";
         internal string DatabaseName { get; set; } = "TT_Net21_People";
         public string Server { get; set; } = @"(localdb)\mssqllocaldb";
+
         internal string CnnString
         {
             get { return string.Format(ConnectionString, DatabaseName, Server); }
         }
+
         public SqlNoDapper()
         {
-            DatabaseName = DBHelpers.DbName;
+            DatabaseName = DbCheckHelper.DbName;
         }
-
-
 
         internal DataTable GetDataTable(string sql, (string name, string value)[] parameters)
         {
@@ -43,6 +43,7 @@
             }
             return dt;
         }
+
         internal void ExecuteSQL(string sql, (string pName, string pValue)[] parameters)
         {
             using (var conn = new SqlConnection(CnnString))
@@ -61,7 +62,5 @@
                 }
             }
         }
-       
     }
 }
-
