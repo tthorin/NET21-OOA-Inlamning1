@@ -9,5 +9,4 @@
             return ConfigurationManager.ConnectionStrings[name].ConnectionString;
         }
     }
-        
 }
