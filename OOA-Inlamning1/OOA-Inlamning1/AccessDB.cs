@@ -3,15 +3,15 @@
     using System;
     using System.Collections.Generic;
     using System.Data;
-    using System.Xml.Linq;
     using static Helpers.ConsolePrintHelpers;
     using static Helpers.SqlHelpers;
 
     internal static class AccessDB
     {
-        static List<Person> people = new();
+        private static List<Person> people = new();
         internal static string tableName = "";
-        static SqlNoDapper snd = new();
+        private static SqlNoDapper snd = new();
+
         internal static void UsernameAndPassword()
         {
             var sql = $"SELECT COUNT(DISTINCT id),COUNT(DISTINCT username),COUNT(DISTINCT password) FROM {tableName}";
@@ -29,8 +29,6 @@
             PrintPeopleList(people);
         }
 
-
-
         internal static void FirstTenLastNameStartWithL()
         {
             string sql = $"SELECT TOP 10 id,first_name,last_name FROM {tableName} WHERE LOWER(last_name) LIKE 'l%'";
@@ -46,7 +44,6 @@
             var countryList = QueryTupleStringInt(sql);
             Console.WriteLine($"\nMost represented country is {countryList[0].Item1} with {countryList[0].Item2} unique users.");
             Wait();
-
         }
 
         internal static void FromNordenVsScandinavia()
@@ -69,6 +66,7 @@
             Console.WriteLine($"\nThere are people from {numberOfDiffrentCountries} diffrent countries in the table.");
             Wait();
         }
+
         internal static void DoQuery(bool doSingleColumn = false)
         {
             var getTableNames = $"select name from sys.columns where object_id = object_id('dbo.{tableName}')";
@@ -79,10 +77,9 @@
             {
                 do
                 {
-                    input = QueryMenu(columnNames,doSingleColumn);
+                    input = QueryMenu(columnNames, doSingleColumn);
                     int x = char.IsDigit(input) ? int.Parse(input.ToString()) : 0;
                     inputInRange = x > 0 && x <= columnNames.Count;
-
                 } while (!inputInRange && input.ToString().ToLower() != "p");
                 if (inputInRange)
                 {
@@ -90,7 +87,7 @@
                     Console.Write($"\nSearch \"{column[..1].ToUpper() + column[1..].Replace('_', ' ')}\" for: ");
                     var inputStr = GetUserString();
                     if (!doSingleColumn)
-                    {   
+                    {
                         DapperQuery(column, inputStr);
                     }
                     else
@@ -98,7 +95,6 @@
                         NoDapperQuery(column, inputStr);
                     }
                 }
-
             }
         }
 
@@ -115,13 +111,13 @@
             PrintPeopleFullInfoList(people);
         }
 
-        private static char QueryMenu(List<(string name, int unused)> columnNames,bool singleColumnAnswer)
+        private static char QueryMenu(List<(string name, int unused)> columnNames, bool singleColumnAnswer)
         {
             Console.Clear();
             int counter = 1;
             string header = singleColumnAnswer ? "Query with single column answer" : "Query with all information answer";
             Console.WriteLine(header);
-            Console.WriteLine(new string('-',header.Length));
+            Console.WriteLine(new string('-', header.Length));
             Console.WriteLine("Columns in table:\n");
             foreach (var name in columnNames)
             {

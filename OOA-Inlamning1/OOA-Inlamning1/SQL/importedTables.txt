@@ -1,3 +1,0 @@
-anotherTable
-FakePeople
-thirdTable

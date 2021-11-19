@@ -2,26 +2,23 @@
 {
     using System;
     using System.Collections.Generic;
-using System.Data;
-    using System.Linq;
-    using System.Text;
+    using System.Data;
     using System.Threading;
-    using System.Threading.Tasks;
 
     internal static class ConsolePrintHelpers
     {
-        static internal void Hold()
+        internal static void Hold()
         {
             Console.Write("Press any key to continue...");
             Console.ReadKey(true);
         }
+
         internal static void Wait(bool holdAtEnd = true, bool onlyDots = false)
         {
             if (!onlyDots) Console.Write("Press any key to continue");
             (int x, int y) = Console.GetCursorPosition();
             while (Console.KeyAvailable == false)
             {
-
                 for (int i = 0; i < 10; i++)
                 {
                     if (i == 0 || i == 5) Console.SetCursorPosition(x, y);
@@ -33,6 +30,7 @@ using System.Data;
             Console.WriteLine();
             if (holdAtEnd) Console.ReadKey(true);
         }
+
         internal static void PrintPeopleList(List<Person> people)
         {
             if (people.Count == 0)
@@ -49,6 +47,7 @@ using System.Data;
             }
             Hold();
         }
+
         internal static void PrintPeopleFullInfoList(List<Person> people)
         {
             if (people.Count == 0)
@@ -67,10 +66,11 @@ using System.Data;
             }
             Hold();
         }
+
         internal static void PrintDtSingleColumns(string columnName, DataTable dt)
         {
-            Console.WriteLine("\n"+columnName+":");
-            Console.WriteLine(new String('-',columnName.Length+1));
+            Console.WriteLine("\n" + columnName + ":");
+            Console.WriteLine(new String('-', columnName.Length + 1));
             if (dt.Rows.Count > 0)
             {
                 int counter = 1;
@@ -84,14 +84,14 @@ using System.Data;
             else Console.WriteLine("\nNothing found.");
             Hold();
         }
+
         internal static string GetUserString(bool toLower = false)
         {
             Console.CursorVisible = true;
             var input = Console.ReadLine().Trim();
             if (toLower) input = input.ToLower();
-            Console.CursorVisible=false;
+            Console.CursorVisible = false;
             return input;
         }
     }
 }
-
