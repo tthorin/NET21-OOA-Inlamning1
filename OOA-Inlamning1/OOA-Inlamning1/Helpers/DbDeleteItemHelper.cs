@@ -25,7 +25,7 @@
             if (input == "delete" && numberOfTables == 0) DeleteDB();
             else if (input == "delete")
             {
-                Console.WriteLine($"Are you sure? There are still {numberOfTables} tables in the database, their data will be lost.");
+                Console.WriteLine($"\nAre you sure? There are still {numberOfTables} tables in the database, their data will be lost.");
                 Console.Write("Type the whole word \"delete\" again to delete, or anything else to cancel: ");
                 if (GetUserString(true) == "delete") DeleteDB();
             }
