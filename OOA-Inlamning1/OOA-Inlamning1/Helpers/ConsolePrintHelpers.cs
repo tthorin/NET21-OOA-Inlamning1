@@ -13,9 +13,10 @@
             Console.ReadKey(true);
         }
 
-        internal static void Wait(bool holdAtEnd = true, bool onlyDots = false)
+        internal static void Wait(bool inMenu = false)
         {
-            if (!onlyDots) Console.Write("Press any key to continue");
+            if (!inMenu) Console.Write("Press any key to continue");
+            else Console.Write("\nPlease press corresponding key to make a selection");
             (int x, int y) = Console.GetCursorPosition();
             while (Console.KeyAvailable == false)
             {
@@ -28,7 +29,7 @@
                 }
             }
             Console.WriteLine();
-            if (holdAtEnd) Console.ReadKey(true);
+            if (!inMenu) Console.ReadKey(true);
         }
 
         internal static void PrintPeopleList(List<Person> people)

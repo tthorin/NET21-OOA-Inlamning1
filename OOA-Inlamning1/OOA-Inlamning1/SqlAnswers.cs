@@ -37,7 +37,7 @@
                 Console.WriteLine("8) Do a custom search, single column reply.");
                 if (numberOfTables > 1) Console.WriteLine("\nC) Change table.");
                 Console.WriteLine("\nE or Escape) Exit application.");
-                Wait(false, true);
+                Wait(true);
                 input = Console.ReadKey(true);
                 switch (input.Key)
                 {
@@ -64,7 +64,7 @@
                 Console.Clear();
                 if (DbCheckHelper.CheckForDB() && DbCheckHelper.CheckForTable()) Console.WriteLine("D) Press D if you wish to delete the datatable and database.");
                 Console.WriteLine("E or Escape) Exit application.");
-                Wait(false, true);
+                Wait(true);
                 input = Console.ReadKey(true);
                 switch (input.Key)
                 {

@@ -93,6 +93,7 @@
                     Console.WriteLine($"{i + 1}) {tables[i]}");
                 }
                 Console.WriteLine("\nP) Previous menu.");
+                Wait(true);
                 input = Console.ReadKey(true).KeyChar;
                 choice = char.IsDigit(input) ? Int32.Parse(input.ToString()) : -1;
                 if (choice > 0 && choice <= tables.Count)

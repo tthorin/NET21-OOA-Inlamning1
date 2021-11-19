@@ -126,7 +126,7 @@
             }
             Console.WriteLine("\nP) to return to previous menu.");
             Console.Write("\nWhat would you like to search for?");
-            Wait(false, true);
+            Wait(true);
             return Console.ReadKey(true).KeyChar;
         }
     }
